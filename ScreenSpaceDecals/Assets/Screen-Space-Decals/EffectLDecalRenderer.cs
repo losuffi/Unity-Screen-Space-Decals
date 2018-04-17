@@ -46,9 +46,12 @@ public class EffectLDecalRenderer : MonoBehaviour
         var normalId = Shader.PropertyToID("_NormalsCopy");
         var specularId = Shader.PropertyToID("_SpecularCopy");
         var emissionId = Shader.PropertyToID("_EmissionsCopy");
+        var diffuseId = Shader.PropertyToID("_DiffuseCopy");
+        buf.GetTemporaryRT(diffuseId, -1, -1);
         buf.GetTemporaryRT(specularId, -1, -1);
         buf.GetTemporaryRT(normalId, -1, -1);
         buf.GetTemporaryRT(emissionId, -1, -1);
+        buf.Blit(BuiltinRenderTextureType.GBuffer0, diffuseId);
         buf.Blit(BuiltinRenderTextureType.GBuffer1, specularId);
         buf.Blit(BuiltinRenderTextureType.GBuffer2, normalId);
         buf.Blit(BuiltinRenderTextureType.GBuffer3, emissionId);
@@ -95,6 +98,7 @@ public class EffectLDecalRenderer : MonoBehaviour
         {
             buf.DrawMesh(decal.mesh, decal.matrix, decal.m_Material);
         }
+        buf.ReleaseTemporaryRT(diffuseId);
         buf.ReleaseTemporaryRT(specularId);
         buf.ReleaseTemporaryRT(normalId);
         buf.ReleaseTemporaryRT(emissionId);

@@ -2,6 +2,7 @@ Shader "Decal/DecalLightingShader"
 {
 	Properties
 	{
+		_MainColor("Color",Color)=(1,1,1,1)
 		_MainTex ("Diffuse", 2D) = "white" {}
 		_SpecularMap("Specular Map",2D)="white"{}
 		_NormalMap("Normal Map",2D) = "white"{}
@@ -64,10 +65,12 @@ Shader "Decal/DecalLightingShader"
 			half _Gloss;
 			half _Roughness;
 			half _BlendFactor;
+			half4 _MainColor;
 			//sampler2D_half _CameraDepthTexture;
 			sampler2D _NormalsCopy;
 			sampler2D _SpecularCopy;
 			sampler2D _EmissionsCopy;
+			sampler2D _DiffuseCopy;
 			void frag(
                 v2f i, 
 				out half4 outDiffuse : COLOR0,
@@ -100,8 +103,8 @@ Shader "Decal/DecalLightingShader"
 				normalWorld = worldNor + normalWorld;
 
 
-				half3 diffuse=saturate(dot(_LightDir,normalWorld) *0.8+0.2)*_LightColor;
-				half specularFactor=tex2D(_SpecularMap,i.uv).r;  
+				half3 diffuse=saturate(dot(_LightDir,normalWorld) *0.8+0.2)*_LightColor*_MainColor;
+				half4 specularFactor=tex2D(_SpecularMap,uv);  
 				half3 view=i.eyeVec;
 				half3 s= (pow(max(dot((view+_LightDir),normalWorld),0.0),_Gloss)*specularFactor)*_LightColor;
 				half4 col = tex2D (_MainTex, i.uv);
@@ -109,10 +112,12 @@ Shader "Decal/DecalLightingShader"
 				half3 colo = col + diffuse;
 				half4 sourceEmission = tex2D(_EmissionsCopy, uv);
 				half4 sourceSpecular=tex2D(_SpecularCopy,uv);
+				half4 sourcediffuse = tex2D(_DiffuseCopy, uv);
+				half4 spec = specularFactor* half4(s,1);
 
-				outDiffuse= half4(colo,col.a);
-				outSpecRoughness=lerp(sourceSpecular,half4(s,_Roughness),col.a);
-				outNormal = half4(normalWorld*0.5+0.5, 1);
+				outDiffuse = lerp(sourcediffuse, half4(colo, col.a), col.a);
+				outSpecRoughness=lerp(sourceSpecular,spec,col.a);
+				outNormal = lerp(tex2D(_NormalsCopy, uv), half4(normalWorld*0.5 + 0.5, 1), col.a);
 				outEmission=lerp(sourceEmission,emission,col.a);
 			}
 			ENDCG
