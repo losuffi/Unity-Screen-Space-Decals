@@ -1,4 +1,4 @@
-Shader "Decal/DecalFullShader"
+Shader "Decal/DecalDynamicViewShader"
 {
 	Properties
 	{		
@@ -25,7 +25,7 @@ Shader "Decal/DecalFullShader"
 			CGPROGRAM
 			#pragma target 3.0
 			#pragma exclude_renderers nomrt
-			#pragma multi_compile OverlayNormal
+			#pragma multi_compile _DynamicProj
 			#include "UnityCG.cginc"
 			#include "..//Include/DecalBase.cginc"
 			#pragma vertex DeferredDecalVert

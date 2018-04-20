@@ -6,9 +6,13 @@ Shader "Decal/DecalCommonShader"
 		_MainTex ("Diffuse", 2D) = "white" {}
 		_SpecularMap("Specular Map",2D)="white"{}
 		_NormalMap("Normal Map",2D) = "white"{}
-		_Gloss("Gloss",Range(0,10.0))=1.0
-		_Roughness("Roughness",Range(0.001,1.0)) = 0.001
-		_BlendFactor("BlendFactor",Range(0,1.0)) = 0.001
+		_NormalFlip("Normal Flip",Range(0,4.0))=1.0
+		_NormalMapScale("Normal Scale",Range(0,4.0))=1.0
+		_Metallic("Metallic",Range(0,1.0))=1.0
+		_Glossiness("Glossiness",Range(0,1.0)) = 0.001
+		_Cutoff("Cutoff",Range(0,1))=0
+		_EmissionColor("Color",Color)=(1,1,1,1)
+		_EmissionMap("Emission Map",2D)="white"{}
 	}
 	SubShader
 	{
@@ -21,11 +25,11 @@ Shader "Decal/DecalCommonShader"
 			CGPROGRAM
 			#pragma target 3.0
 			#pragma exclude_renderers nomrt
-
 			#include "UnityCG.cginc"
 			#include "..//Include/DecalBase.cginc"
 			#pragma vertex DeferredDecalVert
 			#pragma fragment frag
+
 			void frag(
                 VertexOutput i, 
 				out half4 outDiffuse : COLOR0,
@@ -35,25 +39,18 @@ Shader "Decal/DecalCommonShader"
 			)
 			{
 				Decal decal;
-				decal=GetDeferredDecal(i.ray,i.screenUV);
-				half3 nor = UnpackNormal(tex2D(_NormalMap, decal.localUV));
-				half3x3 norMat = half3x3(i.oriSpace[0], i.oriSpace[2], i.oriSpace[1]);
-				half3 worldNor = mul(nor, norMat);
-				half3 normalWorld = worldNor + decal.normal;
-
-
-				half3 diffuse=saturate(dot(_LightDir,normalWorld) *0.5+0.5)*_LightColor;
-				half4 specularFactor=tex2D(_SpecularMap,decal.localUV);  
-				half3 view=i.eyeVec;
-				half3 s= (pow(max(dot((view+_LightDir),normalWorld),0.0),_Gloss))*_LightColor;
-				half4 col = tex2D (_MainTex, decal.localUV)*_MainColor;
-				half3 colo = col + diffuse;
+				decal=GetDeferredDecal(i.ray,i.screenUV,i.oriSpace[1]);
 				DeferredSource source=GetSource(decal.screenPos);
-				half4 spec = specularFactor* half4(s,1);
-				clip(col.a-0.2);
-				outDiffuse = lerp(source.Albedo, half4(colo, col.a), col.a);
-				outSpecRoughness=lerp(source.RoughnessSpec,spec,col.a);
-				outNormal = lerp(source.Normal, half4(normalWorld*0.5 + 0.5, 1), col.a);
+				FragmentCommonData fragment=FragmentMetallic(decal,i.oriSpace[0],i.eyeVec);
+				half3 a=DeferredAmbient(fragment);
+				a+=EmissionAlpha(decal.localUV);
+				half3 c= fragment.diffuse;
+				outDiffuse=half4(c,fragment.occlusion);
+				half4 s= half4(fragment.specular,fragment.oneMinusRoughness);
+				outSpecRoughness=s;
+				half3 n=fragment.normalWorld;
+				outNormal=half4(n*0.5+0.5,1);
+				outEmission=EmissionOutput(half4(a,1),fragment.occlusion);
 			}
 			ENDCG
 		}		
