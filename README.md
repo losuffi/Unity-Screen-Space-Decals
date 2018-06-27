@@ -23,3 +23,14 @@ PS:传统做法的贴花，由于只能投影一个平面，一般为xz轴进行
 
 图例：
 ![](https://i.imgur.com/cXkipwx.png)
+
+## 2018年6月27日13:37:35更新：
+
+新增一种贴花实现方式：
+与之前的利用Commandbuffer不同，这次是将贴花直接写在DrawMesh的Shader上。避免DrawLight时，Buffer中的颜色进行正片叠底。
+
+A：老贴花
+B: 新贴花
+Panel：为Panel mesh 的Standard Shader渲染。
+效果对比如下：
+![](https://i.imgur.com/WNVlqm4.png)

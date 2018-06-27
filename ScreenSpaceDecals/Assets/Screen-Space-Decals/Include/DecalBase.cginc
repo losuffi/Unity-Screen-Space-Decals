@@ -1,3 +1,8 @@
+// Upgrade NOTE: replaced '_CameraToWorld' with 'unity_CameraToWorld'
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 #include "UnityCG.cginc"
 #include "UnityDeferredLibrary.cginc"
 #include "UnityStandardUtils.cginc"
@@ -65,19 +70,19 @@ VertexOutput DeferredDecalVert(half4 position:POSITION)
 {
     VertexOutput input;
     UNITY_INITIALIZE_OUTPUT(VertexOutput,input);
-    input.pos=mul(UNITY_MATRIX_MVP,position);
+    input.pos=UnityObjectToClipPos(position);
     input.screenUV=ComputeScreenPos(input.pos);
     input.ray=mul(UNITY_MATRIX_MV,position).xyz*half3(1,1,-1);
-    half3 posWorld=mul(_Object2World,position).xyz;
+    half3 posWorld=mul(unity_ObjectToWorld,position).xyz;
     input.eyeVec=posWorld-_WorldSpaceCameraPos;
-    input.oriSpace[0]=mul((half3x3)_Object2World,half3(1,0,0));
-    input.oriSpace[1]=mul((half3x3)_Object2World,half3(0,1,0));
-    input.oriSpace[2]=mul((half3x3)_Object2World,half3(0,0,1));
+    input.oriSpace[0]=mul((half3x3)unity_ObjectToWorld,half3(1,0,0));
+    input.oriSpace[1]=mul((half3x3)unity_ObjectToWorld,half3(0,1,0));
+    input.oriSpace[2]=mul((half3x3)unity_ObjectToWorld,half3(0,0,1));
     return input;
 }
 half3 ProjectViewPanel(half3 ObjPos)
 {
-    half3 viewNormal=mul(_World2Object,_WorldSpaceCameraPos).xyz-half3(0,0,0);
+    half3 viewNormal=mul(unity_WorldToObject,_WorldSpaceCameraPos).xyz-half3(0,0,0);
     half3 biViewNormal=normalize(cross(half3(1,0,0),viewNormal));
     half3 tangentNormal=normalize(cross(viewNormal,biViewNormal));
     half3x3 mat=half3x3(tangentNormal,viewNormal,biViewNormal);
@@ -87,14 +92,14 @@ half3 ProjectViewPanel(half3 ObjPos)
 }
 half2 GetDynamicUV(half3 posWorld)
 {
-    half3 posObj=mul(_World2Object,half4(posWorld,1)).xyz;  
+    half3 posObj=mul(unity_WorldToObject,half4(posWorld,1)).xyz;  
     half3 ProjPos=ProjectViewPanel(posObj);  
     clip(half3(0.5,0.5,0.5)-abs(posObj.xyz));
     return ProjPos.xz+0.5;
 }
 half2 GetStaticUV(half3 posWorld)
 {
-    half3 posObj=mul(_World2Object,half4(posWorld,1)).xyz;    
+    half3 posObj=mul(unity_WorldToObject,half4(posWorld,1)).xyz;    
     clip(half3(0.5,0.5,0.5)-abs(posObj.xyz));
     return posObj.xz+0.5;
 }
@@ -105,7 +110,7 @@ Decal GetDeferredDecal(half3 ray,half4 screenUV,half3 defaultNormal)
     output.screenPos=screenUV.xy/screenUV.w;
     output.depth=Linear01Depth( SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, output.screenPos));
     half3 posView= ray*(_ProjectionParams.z/ray.z)*output.depth;
-    output.posWorld=mul(_CameraToWorld,half4( posView,1));
+    output.posWorld=mul(unity_CameraToWorld,half4( posView,1));
     #ifdef _DynamicProj
     output.localUV=GetDynamicUV(output.posWorld);
     #else
