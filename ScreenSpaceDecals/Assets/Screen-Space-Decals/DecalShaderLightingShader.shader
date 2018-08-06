@@ -1,3 +1,8 @@
+// Upgrade NOTE: replaced '_CameraToWorld' with 'unity_CameraToWorld'
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "Decal/DecalLightingShader"
 {
 	Properties
@@ -43,19 +48,19 @@ Shader "Decal/DecalLightingShader"
 			{
 				v2f o;
 				UNITY_INITIALIZE_OUTPUT(v2f, o);
-				o.pos = mul (UNITY_MATRIX_MVP, half4(v,1));
+				o.pos = UnityObjectToClipPos (half4(v,1));
 				o.uv = v.xz+0.5;
 				half2 uv=v.xz+0.5;
 				o.screenUV = ComputeScreenPos (o.pos);
 				o.ray = mul (UNITY_MATRIX_MV, half4(v,1)).xyz * half3(1,1,-1);
-				o.orientation = mul ((half3x3)_Object2World, half3(0,1,0));
-				half3 worldPos=mul((half3x3)_Object2World,v);
+				o.orientation = mul ((half3x3)unity_ObjectToWorld, half3(0,1,0));
+				half3 worldPos=mul((half3x3)unity_ObjectToWorld,v);
 				half3 Campos=half3(0.0,0.0,0.0);
-				half3 worldCam=mul((half3x3)_CameraToWorld,Campos);
+				half3 worldCam=mul((half3x3)unity_CameraToWorld,Campos);
 				o.eyeVec=normalize(worldPos-worldCam);
-				o.oriSpace[0] = mul((half3x3)_Object2World, half3(1, 0, 0));
-				o.oriSpace[1] = mul((half3x3)_Object2World, half3(0, 1, 0));
-				o.oriSpace[2] = mul((half3x3)_Object2World, half3(0, 0, 1));
+				o.oriSpace[0] = mul((half3x3)unity_ObjectToWorld, half3(1, 0, 0));
+				o.oriSpace[1] = mul((half3x3)unity_ObjectToWorld, half3(0, 1, 0));
+				o.oriSpace[2] = mul((half3x3)unity_ObjectToWorld, half3(0, 0, 1));
 				return o;
 			}
 			sampler2D _MainTex;
@@ -84,8 +89,8 @@ Shader "Decal/DecalLightingShader"
 				half depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
 				depth = Linear01Depth (depth);
 				half4 vpos = half4(i.ray * depth,1);
-				half3 wpos = mul (_CameraToWorld, vpos).xyz;
-				half3 opos = mul (_World2Object, half4(wpos,1)).xyz;
+				half3 wpos = mul (unity_CameraToWorld, vpos).xyz;
+				half3 opos = mul (unity_WorldToObject, half4(wpos,1)).xyz;
 
 				clip (half3(0.5,0.5,0.5) - abs(opos.xyz));
 
