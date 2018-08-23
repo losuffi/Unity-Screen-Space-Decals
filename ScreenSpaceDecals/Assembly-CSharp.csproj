@@ -72,11 +72,11 @@
      <None Include="Assets\Screen-Space-Decals\Core\DecalShaderDiffuseNormals.shader" />
      <None Include="Assets\Screen-Space-Decals\DecalShaderLightingShader.shader" />
      <None Include="Assets\Screen-Space-Decals\Core\DecalShaderNormalsOnly.shader" />
- <Reference Include="Unity.PackageManagerUI.Editor">
- <HintPath>L:/EffectL/Screen-Space-Decals/ScreenSpaceDecals/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
- </Reference>
  <Reference Include="UnityEditor.StandardEvents">
  <HintPath>L:/EffectL/Screen-Space-Decals/ScreenSpaceDecals/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.PackageManagerUI.Editor">
+ <HintPath>L:/EffectL/Screen-Space-Decals/ScreenSpaceDecals/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.AIModule">
  <HintPath>L:/Unity2018/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
